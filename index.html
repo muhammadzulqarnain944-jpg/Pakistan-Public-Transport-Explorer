@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Pakistan Public Transport Explorer</title>
+    <meta name="description"
+        content="Explore public transport stops and stations across Pakistan using an interactive Web GIS map.">
+
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://tile.openstreetmap.org">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-icon">PK</div>
+            <div>
+                <h1>Pakistan Public Transport Explorer</h1>
+                <p>National Mobility Mapping · Web GIS Project</p>
+            </div>
+        </div>
+        <div class="header-badge">
+            <span class="status-dot"></span>
+            Interactive Web GIS
+        </div>
+    </header>
+
+    <main class="app-layout">
+        <aside class="sidebar">
+            <section class="welcome">
+                <span class="eyebrow">EXPLORE PAKISTAN</span>
+                <h2>Find transport<br>near your city.</h2>
+                <p>Search a location and explore mapped public transport facilities.</p>
+            </section>
+
+            <section class="panel">
+                <div class="section-heading">
+                    <span class="step-number">01</span>
+                    <div>
+                        <h3>Choose a location</h3>
+                        <p>Select a city or search any area.</p>
+                    </div>
+                </div>
+
+                <label for="citySelect">Popular cities and towns</label>
+                <select id="citySelect">
+                    <option value="">Select a city...</option>
+                </select>
+
+                <label for="locationSearch">Search city, town or district</label>
+                <form id="searchForm" class="search-row">
+                    <input id="locationSearch" type="text" placeholder="e.g. Skardu, Hunza, Taxila" autocomplete="off"
+                        required>
+                    <button type="submit" class="search-button" aria-label="Search location">⌕</button>
+                </form>
+
+                <button id="nationalViewBtn" class="button button-secondary" type="button">
+                    <span>◎</span> View all Pakistan
+                </button>
+
+                <div class="quick-cities">
+                    <span class="mini-label">QUICK ACCESS</span>
+                    <div id="quickCityButtons" class="quick-city-buttons"></div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="section-heading">
+                    <span class="step-number">02</span>
+                    <div>
+                        <h3>Filter transport data</h3>
+                        <p>Choose what appears on the map.</p>
+                    </div>
+                </div>
+
+                <label for="nameFilter">Filter by facility name</label>
+                <input id="nameFilter" type="text" placeholder="e.g. bus terminal">
+
+                <div class="filter-list">
+                    <label class="filter-option">
+                        <input type="checkbox" id="filterBus" checked>
+                        <span class="category-icon bus">B</span>
+                        <span class="filter-text">Bus stops and stations</span>
+                    </label>
+
+                    <label class="filter-option">
+                        <input type="checkbox" id="filterRail" checked>
+                        <span class="category-icon rail">R</span>
+                        <span class="filter-text">Railway stations and stops</span>
+                    </label>
+
+                    <label class="filter-option">
+                        <input type="checkbox" id="filterMetro" checked>
+                        <span class="category-icon metro">M</span>
+                        <span class="filter-text">Metro and light rail</span>
+                    </label>
+
+                    <label class="filter-option">
+                        <input type="checkbox" id="filterOther" checked>
+                        <span class="category-icon other">T</span>
+                        <span class="filter-text">Other transport facilities</span>
+                    </label>
+                </div>
+
+                <button id="loadRoutesBtn" class="button button-secondary" type="button">
+                    ↗ Load public transport routes
+                </button>
+
+                <div class="button-pair">
+                    <button id="applyFiltersBtn" class="button button-primary" type="button">
+                        Apply filters
+                    </button>
+                    <button id="resetBtn" class="button button-plain" type="button">
+                        Reset
+                    </button>
+                </div>
+            </section>
+
+            <section class="panel results-panel">
+                <div class="section-heading">
+                    <span class="step-number">03</span>
+                    <div>
+                        <h3>Location overview</h3>
+                        <p>Results from the current search.</p>
+                    </div>
+                </div>
+
+                <div class="location-name" id="currentLocation">Pakistan</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Facilities loaded</span>
+                        <strong id="totalFacilities">0</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Visible on map</span>
+                        <strong id="visibleFacilities">0</strong>
+                    </div>
+                </div>
+                <div id="statusMessage" class="status-message" role="status" aria-live="polite">
+                    Ready. Select a location to begin.
+                </div>
+            </section>
+
+            <section class="data-note">
+                <strong>About this map</strong>
+                <p>Data is retrieved from OpenStreetMap contributors using the Overpass API. Results depend on available
+                    map data and API response limits.</p>
+                <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">
+                    OpenStreetMap attribution
+                </a>
+            </section>
+
+            <footer class="sidebar-footer">
+                <span>Pakistan Public Transport Explorer</span>
+                <span>Academic Web GIS Project</span>
+            </footer>
+        </aside>
+
+        <section class="map-section">
+            <div class="map-toolbar">
+                <div>
+                    <span class="map-eyebrow">LIVE MAP VIEW</span>
+                    <h2 id="mapTitle">Pakistan overview</h2>
+                </div>
+                <div class="map-toolbar-right">
+                    <span class="map-status"><span class="status-dot"></span> Map ready</span>
+                    <button id="zoomToResultsBtn" class="toolbar-button" type="button">Fit results</button>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="map" aria-label="Interactive map of public transport facilities in Pakistan"></div>
+                <div id="loadingOverlay" class="loading-overlay hidden">
+                    <div class="spinner"></div>
+                    <strong>Fetching map data...</strong>
+                    <span>Please wait. This may take a little time.</span>
+                </div>
+                <div class="map-credit">Map data © OpenStreetMap contributors</div>
+            </div>
+
+            <div class="map-footer">
+                <div class="legend">
+                    <span class="legend-item"><i class="legend-dot bus-dot"></i> Bus</span>
+                    <span class="legend-item"><i class="legend-dot rail-dot"></i> Railway</span>
+                    <span class="legend-item"><i class="legend-dot metro-dot"></i> Metro / Light rail</span>
+                    <span class="legend-item"><i class="legend-dot other-dot"></i> Other</span>
+                </div>
+                <span class="footer-hint">Select a marker to view its details.</span>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
